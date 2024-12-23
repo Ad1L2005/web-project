@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Application</title>
+    <link rel="stylesheet" href="../../../../../static/styles1.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Quiz</h1>
+
+        <!-- Registration and Login Section -->
+        <div id="auth-section">
+            <h2>Register or Login</h2>
+            <form id="register-form">
+                <h3>Register</h3>
+                <input type="text" id="reg-username" placeholder="Enter Username" required>
+                <input type="password" id="reg-password" placeholder="Enter Password" required>
+                <button type="button" onclick="registerUser()">Register</button>
+            </form>
+            <form id="login-form">
+                <h3>Login</h3>
+                <input type="text" id="login-username" placeholder="Enter Username" required>
+                <input type="password" id="login-password" placeholder="Enter Password" required>
+                <button type="button" onclick="loginUser()">Login</button>
+            </form>
+        </div>
+
+        <!-- Quiz Section (hidden until login) -->
+        <div id="quiz-section" style="display: none;">
+            <h2>Quiz</h2>
+            <form id="quiz-form">
+                <div class="question">
+                    <p>Question 1: What is 2 + 2?</p>
+                    <input type="radio" name="q1" value="3"> 3<br>
+                    <input type="radio" name="q1" value="4"> 4<br>
+                    <input type="radio" name="q1" value="5"> 5<br>
+                </div>
+                <button type="button" onclick="submitQuiz()">Submit Quiz</button>
+            </form>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-section" style="display: none;">
+            <h2>Result</h2>
+            <p id="result-text"></p>
+        </div>
+    </div>
+
+    <script>
+        function registerUser() {
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+
+            fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function loginUser() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Login successful!');
+                    document.getElementById('auth-section').style.display = 'none';
+                    document.getElementById('quiz-section').style.display = 'block';
+                } else {
+                    alert('Login failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function submitQuiz() {
+            const answers = new FormData(document.getElementById('quiz-form'));
+            const quizData = {};
+            for (const [key, value] of answers.entries()) {
+                quizData[key] = value;
+            }
+
+            fetch('/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(quizData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('quiz-section').style.display = 'none';
+                document.getElementById('result-section').style.display = 'block';
+                document.getElementById('result-text').innerText = `You scored ${data.score} points!`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
